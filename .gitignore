@@ -1,0 +1,21 @@
+# Compiled files
+*.class
+
+# Logs
+*.log
+
+# NetBeans
+nbproject/private/
+build/
+dist/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+*.iml
+.idea/
