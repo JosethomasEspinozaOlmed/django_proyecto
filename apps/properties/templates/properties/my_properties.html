@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis publicaciones — InmueblesP Y{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-0">Mis publicaciones</h2>
+      <p class="text-muted mb-0">{{ properties.count }} propiedad{{ properties.count|pluralize:"es" }} publicada{{ properties.count|pluralize:"s" }}</p>
+    </div>
+    {% if request.user.profile.is_seller %}
+      <a href="{% url 'properties:create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Nueva propiedad
+      </a>
+    {% else %}
+      <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary">
+        <i class="bi bi-person me-1"></i>Activar cuenta vendedor
+      </a>
+    {% endif %}
+  </div>
+
+  {% if properties %}
+    <div class="row g-3">
+      {% for prop in properties %}
+        <div class="col-12">
+          <div class="card p-0" style="border-radius:12px;">
+            <div class="row g-0 align-items-center">
+              <div class="col-md-2">
+                <div style="height:100px;background:#F1F5F9;border-radius:12px 0 0 12px;display:flex;align-items:center;justify-content:center;font-size:2rem;overflow:hidden;">
+                  {% if prop.cover_photo %}
+                    <img src="{{ prop.cover_photo.thumbnail.url|default:prop.cover_photo.image.url }}" style="width:100%;height:100%;object-fit:cover;" alt="">
+                  {% else %}
+                    {% if prop.property_type == 'house' %}🏠{% elif prop.property_type == 'apartment' %}🏢{% elif prop.property_type == 'land' %}🌿{% else %}🏪{% endif %}
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-7 p-3">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge-type badge-{{ prop.property_type }}">{{ prop.get_property_type_display }}</span>
+                  <span class="badge rounded-pill
+                    {% if prop.status == 'active' %}bg-success
+                    {% elif prop.status == 'paused' %}bg-warning text-dark
+                    {% else %}bg-secondary{% endif %}" style="font-size:.7rem;">
+                    {{ prop.get_status_display }}
+                  </span>
+                </div>
+                <h5 class="fw-bold mb-1" style="font-size:1rem;">{{ prop.title }}</h5>
+                <div class="text-muted" style="font-size:.82rem;">
+                  <i class="bi bi-geo-alt me-1"></i>{{ prop.city }} &nbsp;·&nbsp;
+                  <i class="bi bi-currency-dollar"></i>{{ prop.price_formatted }} &nbsp;·&nbsp;
+                  <i class="bi bi-eye me-1"></i>{{ prop.views_count }} visitas &nbsp;·&nbsp;
+                  <i class="bi bi-image me-1"></i>{{ prop.photos.count }} fotos
+                </div>
+                <div class="text-muted mt-1" style="font-size:.75rem;">
+                  Publicada el {{ prop.created_at|date:"d/m/Y" }}
+                </div>
+              </div>
+              <div class="col-md-3 p-3 d-flex flex-column gap-2 align-items-end">
+                <a href="{{ prop.get_absolute_url }}" class="btn btn-outline-secondary btn-sm w-100">
+                  <i class="bi bi-eye me-1"></i>Ver
+                </a>
+                <a href="{% url 'properties:edit' prop.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                  <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+                <a href="{% url 'properties:delete' prop.pk %}" class="btn btn-outline-danger btn-sm w-100">
+                  <i class="bi bi-trash me-1"></i>Eliminar
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <div style="font-size:3.5rem;margin-bottom:1rem;">🏠</div>
+      <h4 class="text-muted">Todavía no publicaste ninguna propiedad</h4>
+      <p class="text-muted">¡Publicá tu primera propiedad en minutos!</p>
+      {% if request.user.profile.is_seller %}
+        <a href="{% url 'properties:create' %}" class="btn btn-primary btn-lg">Publicar mi primera propiedad</a>
+      {% else %}
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary">Activar cuenta vendedor</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

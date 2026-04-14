@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Propiedades en Paraguay — InmueblesP Y{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hero {
+    background: linear-gradient(135deg, #185FA5 0%, #0C447C 100%);
+    padding: 3rem 0 2rem; color: #fff; margin-bottom: 0;
+  }
+  .hero h1 { font-weight: 700; font-size: 2rem; }
+  .filter-card {
+    background: #fff; border-radius: 16px; padding: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,.1);
+    margin-top: -1px;
+  }
+  .prop-card { transition: transform .2s, box-shadow .2s; border: none; }
+  .prop-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,.12); }
+  .prop-img-wrap { position: relative; overflow: hidden; border-radius: 12px 12px 0 0; height: 200px; background: #F1F5F9; }
+  .prop-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+  .prop-card:hover .prop-img-wrap img { transform: scale(1.04); }
+  .prop-img-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem; color: #CBD5E1; }
+  .prop-price { font-size: 1.3rem; font-weight: 700; color: #185FA5; }
+  .prop-features { display: flex; gap: .75rem; font-size: .82rem; color: #6B7280; }
+  .prop-features span { display: flex; align-items: center; gap: 3px; }
+  .result-count { font-size: .9rem; color: #6B7280; }
+  .filter-label { font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: 4px; }
+  .form-control, .form-select { border-radius: 8px; font-size: .875rem; border: 1px solid #E5E7EB; }
+  .form-control:focus, .form-select:focus { border-color: #185FA5; box-shadow: 0 0 0 3px rgba(24,95,165,.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero + Filtros -->
+<section class="hero">
+  <div class="container">
+    <h1 class="mb-1">Encontrá tu propiedad ideal</h1>
+    <p class="mb-4" style="opacity:.8">{{ total_count }} propiedad{{ total_count|pluralize:"es" }} disponible{{ total_count|pluralize:"s" }} en Paraguay</p>
+
+    <div class="filter-card">
+      <form method="GET" action="">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <div class="filter-label">¿Qué buscás?</div>
+            {{ filter.form.title }}
+          </div>
+          <div class="col-md-2">
+            <div class="filter-label">Tipo</div>
+            {{ filter.form.property_type }}
+          </div>
+          <div class="col-md-2">
+            <div class="filter-label">Ciudad</div>
+            {{ filter.form.city }}
+          </div>
+          <div class="col-md-2">
+            <div class="filter-label">Precio mín. (USD)</div>
+            {{ filter.form.price_min }}
+          </div>
+          <div class="col-md-2">
+            <div class="filter-label">Precio máx. (USD)</div>
+            {{ filter.form.price_max }}
+          </div>
+          <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </div>
+        {% if request.GET %}
+          <div class="mt-2">
+            <a href="{% url 'properties:list' %}" class="btn btn-link btn-sm text-muted p-0">
+              <i class="bi bi-x-circle me-1"></i>Limpiar filtros
+            </a>
+          </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Listado -->
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="result-count">
+      {% if page_obj.paginator.count > 0 %}
+        Mostrando {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ page_obj.paginator.count }} resultados
+      {% endif %}
+    </div>
+  </div>
+
+  {% if page_obj %}
+    <div class="row g-4">
+      {% for prop in page_obj %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card prop-card h-100">
+            <div class="prop-img-wrap">
+              {% if prop.cover_photo %}
+                <img src="{{ prop.cover_photo.thumbnail.url|default:prop.cover_photo.image.url }}" alt="{{ prop.title }}">
+              {% else %}
+                <div class="prop-img-placeholder">
+                  {% if prop.property_type == 'house' %}🏠
+                  {% elif prop.property_type == 'apartment' %}🏢
+                  {% elif prop.property_type == 'land' %}🌿
+                  {% else %}🏪{% endif %}
+                </div>
+              {% endif %}
+              <div style="position:absolute;top:10px;left:10px;">
+                <span class="badge-type badge-{{ prop.property_type }}">{{ prop.get_property_type_display }}</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <h5 class="card-title fw-600 mb-1" style="font-size:.95rem;">{{ prop.title }}</h5>
+              <div class="text-muted mb-2" style="font-size:.82rem;">
+                <i class="bi bi-geo-alt me-1"></i>{{ prop.city }}
+              </div>
+              <div class="prop-price mb-2">{{ prop.price_formatted }}</div>
+              <div class="prop-features">
+                {% if prop.bedrooms %}<span><i class="bi bi-door-open"></i> {{ prop.bedrooms }} dorm.</span>{% endif %}
+                {% if prop.bathrooms %}<span><i class="bi bi-droplet"></i> {{ prop.bathrooms }} baños</span>{% endif %}
+                {% if prop.area_m2 %}<span><i class="bi bi-rulers"></i> {{ prop.area_m2 }}m²</span>{% endif %}
+              </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 pt-0 pb-3 px-3">
+              <a href="{{ prop.get_absolute_url }}" class="btn btn-outline-primary btn-sm w-100">
+                Ver detalle <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+      <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                <i class="bi bi-chevron-left"></i>
+              </a>
+            </li>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+              <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+            </li>
+          {% endfor %}
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="text-center py-5">
+      <div style="font-size:3rem;margin-bottom:1rem;">🔍</div>
+      <h4 class="text-muted">No se encontraron propiedades</h4>
+      <p class="text-muted">Probá con otros filtros de búsqueda.</p>
+      <a href="{% url 'properties:list' %}" class="btn btn-primary">Ver todas las propiedades</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
