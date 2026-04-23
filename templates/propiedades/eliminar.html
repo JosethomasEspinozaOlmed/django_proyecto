@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar propiedad{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm p-4">
+    <h1 class="mb-3">Eliminar propiedad</h1>
+    <p>¿Estás seguro de que querés eliminar <strong>{{ propiedad.titulo }}</strong>?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+        <a href="{% url 'mis_publicaciones' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

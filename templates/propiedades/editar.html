@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar propiedad{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Editar propiedad</h1>
+
+<div class="card shadow-sm p-4">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-warning">Guardar cambios</button>
+    </form>
+</div>
+{% endblock %}

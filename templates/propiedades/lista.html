@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - InmueblesPY{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Listado de propiedades</h1>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input type="text" name="busqueda" class="form-control" placeholder="Buscar por ciudad o barrio" value="{{ busqueda|default:'' }}">
+    </div>
+
+    <div class="col-md-4">
+        <select name="tipo" class="form-select">
+            <option value="">Todos</option>
+            <option value="casa" {% if tipo == 'casa' %}selected{% endif %}>Casa</option>
+            <option value="depto" {% if tipo == 'depto' %}selected{% endif %}>Departamento</option>
+            <option value="terreno" {% if tipo == 'terreno' %}selected{% endif %}>Terreno</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">Buscar</button>
+    </div>
+</form>
+
+<div class="row">
+    {% for propiedad in propiedades %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                {% if propiedad.foto_principal %}
+                    <img src="{{ propiedad.foto_principal.url }}" class="card-img-top" style="height: 220px; object-fit: cover;">
+                {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ propiedad.titulo }}</h5>
+                    <p class="card-text"><strong>Tipo:</strong> {{ propiedad.get_tipo_display }}</p>
+                    <p class="card-text"><strong>Precio:</strong> USD {{ propiedad.precio }}</p>
+                    <p class="card-text"><strong>Ubicación:</strong> {{ propiedad.ciudad }}{% if propiedad.barrio %}, {{ propiedad.barrio }}{% endif %}</p>
+                    <a href="{% url 'detalle_propiedad' propiedad.pk %}" class="btn btn-outline-dark">Ver detalle</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>No hay propiedades cargadas todavía.</p>
+    {% endfor %}
+</div>
+{% endblock %}

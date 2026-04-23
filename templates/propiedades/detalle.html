@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ propiedad.titulo }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'inicio' %}" class="btn btn-secondary mb-3">Volver</a>
+
+<div class="card shadow-sm">
+    {% if propiedad.foto_principal %}
+        <img src="{{ propiedad.foto_principal.url }}" class="card-img-top" style="max-height: 450px; object-fit: cover;">
+    {% endif %}
+
+    <div class="card-body">
+        <h2>{{ propiedad.titulo }}</h2>
+        <p><strong>Tipo:</strong> {{ propiedad.get_tipo_display }}</p>
+        <p><strong>Precio:</strong> USD {{ propiedad.precio }}</p>
+        <p><strong>Ciudad:</strong> {{ propiedad.ciudad }}</p>
+        <p><strong>Barrio:</strong> {{ propiedad.barrio }}</p>
+        <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+        <p><strong>Superficie:</strong> {{ propiedad.superficie }} m²</p>
+        <p><strong>Dormitorios:</strong> {{ propiedad.dormitorios }}</p>
+        <p><strong>Baños:</strong> {{ propiedad.banos }}</p>
+        <p><strong>Cochera:</strong> {% if propiedad.cochera %}Sí{% else %}No{% endif %}</p>
+        <p><strong>Descripción:</strong> {{ propiedad.descripcion }}</p>
+
+        <a href="{% url 'contactar_vendedor' propiedad.pk %}" class="btn btn-success">Contactar al vendedor</a>
+    </div>
+</div>
+{% endblock %}
