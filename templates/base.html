@@ -22,6 +22,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'mis_publicaciones' %}">Mis publicaciones</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'mensajes_recibidos' %}">Mensajes</a>
+                    </li>
                 </ul>
 
                 <ul class="navbar-nav">
@@ -30,8 +33,13 @@
                             <span class="nav-link">Hola, {{ user.username }}</span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Cerrar sesión</a>
-                        </li>
+                         <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link btn btn-link" style="text-decoration:none;">
+                                Cerrar sesión
+                            </button>
+                         </form>
+                         </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a>

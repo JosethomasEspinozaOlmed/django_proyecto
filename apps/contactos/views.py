@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from apps.propiedades.models import Propiedad
 from .forms import ContactoForm
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Contacto
 
 def contactar_vendedor(request, pk):
     propiedad = get_object_or_404(Propiedad, pk=pk)
@@ -20,4 +22,14 @@ def contactar_vendedor(request, pk):
     return render(request, 'contactos/contactar.html', {
         'form': form,
         'propiedad': propiedad
+    })
+
+@login_required
+def mensajes_recibidos(request):
+    mensajes_contacto = Contacto.objects.filter(
+        propiedad__vendedor=request.user
+    ).order_by('-creado')
+
+    return render(request, 'contactos/mensajes_recibidos.html', {
+        'mensajes_contacto': mensajes_contacto
     })
