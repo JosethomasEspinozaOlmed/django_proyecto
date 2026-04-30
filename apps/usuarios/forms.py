@@ -15,3 +15,6 @@ class RegistroForm(forms.ModelForm):
             'username': 'Nombre de usuario',
             'email': 'Correo electrónico',
         }
+        help_texts = {
+            'username': '',
+        }
