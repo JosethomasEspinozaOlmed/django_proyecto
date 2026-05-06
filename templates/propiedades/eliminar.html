@@ -9,8 +9,8 @@
 
     <form method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
-        <a href="{% url 'mis_publicaciones' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-outline-danger">Sí, eliminar</button>
+        <a href="{% url 'mis_publicaciones' %}" class="btn btn-outline-secondary">Cancelar</a>
     </form>
 </div>
 {% endblock %}
