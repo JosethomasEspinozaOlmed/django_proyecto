@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 88
+exclude = '''
+/(
+    migrations
+  | venv
+  | \.venv
+  | __pycache__
+)/
+'''
