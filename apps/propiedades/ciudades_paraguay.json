@@ -1,0 +1,20 @@
+{
+  "Asunción": ["Asunción"],
+  "Central": ["Areguá","Capiatá","Fernando de la Mora","Itauguá","J. A. Saldívar","Lambaré","Luque","Mariano Roque Alonso","Nueva Italia","Ñemby","San Lorenzo","Valenzuela","Villa Elisa","Villeta","Ypacaraí","Ypané"],
+  "Alto Paraguay": ["Fuerte Olimpo"],
+  "Alto Paraná": ["Ciudad del Este","Hernandarias","Minga Guazú","Presidente Franco","J. Eulogio Estigarribia","Naranjal","Santa Rita"],
+  "Amambay": ["Pedro Juan Caballero","Zavala","Bella Vista Norte"],
+  "Boquerón": ["Filadelfia","Mariscal Estigarribia","Arroyos y Esteros"],
+  "Caaguazú": ["Coronel Oviedo","Caaguazú","Ajos","Carlos Antonio Lopez"],
+  "Caazapá": ["Caazapá","Yuty","San Juan Nepomuceno"],
+  "Canindeyú": ["Salto del Guairá","Nueva Esperanza","Katueté"],
+  "Concepción": ["Concepción","Vallemí","Horqueta"],
+  "Cordillera": ["Atyrá","Altos","Caacupé","Isla Pucú"],
+  "Guairá": ["Villarrica","Iturbe","Mbocayaty"],
+  "Itapúa": ["Encarnación","Cambyretá","Tomás Romero Pereira","San Juan del Paraná","Hohenau"],
+  "Misiones": ["San Ignacio","Ayolas","San Juan Bautista"],
+  "Ñeembucú": ["Pilar","Paso de la Patria","Piribebuy"],
+  "Paraguarí": ["Paraguarí","Yaguarón","Carapeguá"],
+  "Presidente Hayes": ["Villa Hayes","Benjamín Aceval","Nanawa"],
+  "San Pedro": ["San Pedro","Antequera","Ruta 5","Santa Rosa del Aguaray"]
+}

@@ -6,3 +6,5 @@ exclude =
     .venv,
     __pycache__,
     manage.py
+
+    #define las reglas de analisis estatico para el proyoecto 

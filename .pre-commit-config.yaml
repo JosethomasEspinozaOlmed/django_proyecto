@@ -12,3 +12,5 @@ repos:
       - id: flake8
         exclude: |
           (^migrations/)|(^venv/)|(^.venv/)|(^__pycache__/)
+
+#define los hooks que se ejecutarán antes de cada commit

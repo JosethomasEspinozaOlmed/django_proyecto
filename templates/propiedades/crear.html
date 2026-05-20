@@ -6,121 +6,416 @@
 <div class="row justify-content-center">
     <div class="col-lg-10">
         <div class="card shadow-sm border-0 rounded-4 p-4">
-            <h1 class="mb-4">Publicar propiedad</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-1">Publicar propiedad</h1>
+                    <p class="text-muted mb-0">Completa los datos y revisa la vista previa antes de publicar.</p>
+                </div>
+                <span class="badge bg-info text-dark py-2 px-3">Paso 1 de 1</span>
+            </div>
 
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
+                <div class="row gx-4">
+                    <div class="col-lg-7">
+                        <div class="mb-4 p-4 rounded-4 section-card">
+                            <h4 class="section-title">Información principal</h4>
+                            <p class="text-muted small">Título, tipo de propiedad y precio.</p>
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label for="{{ form.titulo.id_for_label }}" class="form-label">{{ form.titulo.label }}</label>
+                                    {{ form.titulo }}
+                                    {% if form.titulo.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.titulo.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.tipo.id_for_label }}" class="form-label">{{ form.tipo.label }}</label>
+                                    {{ form.tipo }}
+                                    {% if form.tipo.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.tipo.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.precio.id_for_label }}" class="form-label">{{ form.precio.label }}</label>
+                                    {{ form.precio }}
+                                    {% if form.precio.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.precio.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="{{ form.moneda.id_for_label }}" class="form-label">{{ form.moneda.label }}</label>
+                                    {{ form.moneda }}
+                                    {% if form.moneda.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.moneda.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="{{ form.departamento.id_for_label }}" class="form-label">{{ form.departamento.label }}</label>
+                                    {{ form.departamento }}
+                                    <div class="form-text text-muted">Elige un departamento para filtrar las ciudades disponibles.</div>
+                                    {% if form.departamento.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.departamento.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="row">
-                    <div class="col-md-8 mb-3">
-                        <label for="{{ form.titulo.id_for_label }}" class="form-label">{{ form.titulo.label }}</label>
-                        {{ form.titulo }}
-                        {% if form.titulo.errors %}
-                            <div class="text-danger small">{{ form.titulo.errors }}</div>
-                        {% endif %}
+                        <div class="mb-4 p-4 rounded-4 section-card">
+                            <h4 class="section-title">Ubicación</h4>
+                            <p class="text-muted small">Selecciona departamento, ciudad y dirección exacta.</p>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.ciudad.id_for_label }}" class="form-label">{{ form.ciudad.label }}</label>
+                                    {{ form.ciudad }}
+                                    <datalist id="ciudades-list"></datalist>
+                                    {% if form.ciudad.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.ciudad.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.barrio.id_for_label }}" class="form-label">{{ form.barrio.label }}</label>
+                                    {{ form.barrio }}
+                                    {% if form.barrio.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.barrio.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}</label>
+                                {{ form.direccion }}
+                                {% if form.direccion.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.direccion.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.ubicacion.id_for_label }}" class="form-label">{{ form.ubicacion.label }}</label>
+                                {{ form.ubicacion }}
+                                <div class="form-text text-muted">Usá un enlace de Google Maps para que el mapa se muestre en la vista previa.</div>
+                                {% if form.ubicacion.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.ubicacion.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4 p-4 rounded-4 section-card">
+                            <h4 class="section-title">Detalles</h4>
+                            <p class="text-muted small">Superficie, dormitorios, baños y extras.</p>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.superficie.id_for_label }}" class="form-label">{{ form.superficie.label }}</label>
+                                    {{ form.superficie }}
+                                    {% if form.superficie.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.superficie.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.dormitorios.id_for_label }}" class="form-label">{{ form.dormitorios.label }}</label>
+                                    {{ form.dormitorios }}
+                                    {% if form.dormitorios.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.dormitorios.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.banos.id_for_label }}" class="form-label">{{ form.banos.label }}</label>
+                                    {{ form.banos }}
+                                    {% if form.banos.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.banos.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                {{ form.cochera }}
+                                <label class="form-check-label" for="{{ form.cochera.id_for_label }}">{{ form.cochera.label }}</label>
+                                {% if form.cochera.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.cochera.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4 p-4 rounded-4 section-card">
+                            <h4 class="section-title">Descripción y multimedia</h4>
+                            <p class="text-muted small">Describe la propiedad y sube la foto principal.</p>
+                            <div class="mb-3">
+                                <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }}</label>
+                                {{ form.descripcion }}
+                                {% if form.descripcion.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.descripcion.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-4">
+                                <label for="{{ form.foto_principal.id_for_label }}" class="form-label">{{ form.foto_principal.label }}</label>
+                                {{ form.foto_principal }}
+                                {% if form.foto_principal.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.foto_principal.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <button id="submit-btn" type="submit" class="btn btn-primary px-4 position-relative">
+                                <span class="btn-text">Guardar propiedad</span>
+                                <span class="btn-spinner" style="display:none;"></span>
+                            </button>
+                            <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
                     </div>
 
-                    <div class="col-md-4 mb-3">
-                        <label for="{{ form.tipo.id_for_label }}" class="form-label">{{ form.tipo.label }}</label>
-                        {{ form.tipo }}
-                        {% if form.tipo.errors %}
-                            <div class="text-danger small">{{ form.tipo.errors }}</div>
-                        {% endif %}
+                    <div class="col-lg-5">
+                        <div class="sticky-preview-wrapper">
+                            <div class="preview-card card p-4">
+                                <div class="img-preview mb-3 text-center">
+                                    <img id="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='240' viewBox='0 0 400 240'%3E%3Crect width='400' height='240' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' font-family='Segoe UI, sans-serif' font-size='18' fill='%2372777d' text-anchor='middle' dominant-baseline='middle'%3ENo image yet%3C/text%3E%3C/svg%3E' alt='Imagen' class='img-fluid rounded' />
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <h4 id="preview-title" class="mb-1">Título de la propiedad</h4>
+                                    <span id="preview-badge" class="badge badge-preview">Vista previa</span>
+                                </div>
+                                <p class="text-muted mb-1" id="preview-location">Ubicación pendiente</p>
+                                <h5 id="preview-price" class="mb-2">--</h5>
+                                <div class="d-flex gap-3 flex-wrap mb-2 text-muted small" id="preview-specs">
+                                    <div id="preview-area">Superficie: -- m²</div>
+                                    <div id="preview-beds">Dormitorios: --</div>
+                                    <div id="preview-baths">Baños: --</div>
+                                </div>
+                                <p id="preview-desc" class="small text-truncate" style="max-height:4.5rem; overflow:hidden;">Descripción breve...</p>
+                                <div class="mt-3">
+                                    <a id="preview-map-link" href="#" target="_blank" class="small text-decoration-none preview-link-disabled">Abrir en Google Maps</a>
+                                    <div id="preview-map" class="map-embed mt-2" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="{{ form.precio.id_for_label }}" class="form-label">{{ form.precio.label }}</label>
-                        {{ form.precio }}
-                        {% if form.precio.errors %}
-                            <div class="text-danger small">{{ form.precio.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label for="{{ form.ciudad.id_for_label }}" class="form-label">{{ form.ciudad.label }}</label>
-                        {{ form.ciudad }}
-                        {% if form.ciudad.errors %}
-                            <div class="text-danger small">{{ form.ciudad.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label for="{{ form.barrio.id_for_label }}" class="form-label">{{ form.barrio.label }}</label>
-                        {{ form.barrio }}
-                        {% if form.barrio.errors %}
-                            <div class="text-danger small">{{ form.barrio.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}</label>
-                    {{ form.direccion }}
-                    {% if form.direccion.errors %}
-                        <div class="text-danger small">{{ form.direccion.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="{{ form.superficie.id_for_label }}" class="form-label">{{ form.superficie.label }}</label>
-                        {{ form.superficie }}
-                        {% if form.superficie.errors %}
-                            <div class="text-danger small">{{ form.superficie.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label for="{{ form.dormitorios.id_for_label }}" class="form-label">{{ form.dormitorios.label }}</label>
-                        {{ form.dormitorios }}
-                        {% if form.dormitorios.errors %}
-                            <div class="text-danger small">{{ form.dormitorios.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label for="{{ form.banos.id_for_label }}" class="form-label">{{ form.banos.label }}</label>
-                        {{ form.banos }}
-                        {% if form.banos.errors %}
-                            <div class="text-danger small">{{ form.banos.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="form-check mb-3">
-                    {{ form.cochera }}
-                    <label for="{{ form.cochera.id_for_label }}" class="form-check-label">
-                        {{ form.cochera.label }}
-                    </label>
-                    {% if form.cochera.errors %}
-                        <div class="text-danger small">{{ form.cochera.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-3">
-                    <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }}</label>
-                    {{ form.descripcion }}
-                    {% if form.descripcion.errors %}
-                        <div class="text-danger small">{{ form.descripcion.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-4">
-                    <label for="{{ form.foto_principal.id_for_label }}" class="form-label">{{ form.foto_principal.label }}</label>
-                    {{ form.foto_principal }}
-                    {% if form.foto_principal.errors %}
-                        <div class="text-danger small">{{ form.foto_principal.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary px-4">Guardar propiedad</button>
-                    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">Cancelar</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+<script>
+async function populateCities(dep, q) {
+    const list = document.getElementById('ciudades-list');
+    list.innerHTML = '';
+    const params = new URLSearchParams();
+    if (dep) params.set('departamento', dep);
+    if (q) params.set('q', q);
+    try {
+        const res = await fetch(`/api/ciudades/?${params.toString()}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const ciudades = data.ciudades || [];
+        ciudades.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            list.appendChild(opt);
+        });
+    } catch (e) {
+        console.error('Error al cargar ciudades', e);
+    }
+}
+
+function formatNumberWithCommas(x) {
+    const parts = x.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+}
+
+function tryEmbedMap(url) {
+    if (!url) return null;
+    try {
+        const u = new URL(url);
+        if (u.hostname.includes('google') && u.pathname.includes('/maps')) {
+            let embed = url;
+            if (!url.includes('/embed')) {
+                embed = url.replace('/maps', '/maps/embed');
+            }
+            return embed;
+        }
+    } catch(e) {
+        return null;
+    }
+    return null;
+}
+
+function showValidationState(input, message) {
+    input.classList.remove('is-valid', 'is-invalid');
+    let feedback = input.parentNode.querySelector('.invalid-feedback');
+    if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback';
+        input.parentNode.appendChild(feedback);
+    }
+    if (message) {
+        input.classList.add('is-invalid');
+        feedback.textContent = message;
+        feedback.style.display = 'block';
+    } else {
+        input.classList.add('is-valid');
+        feedback.textContent = '';
+        feedback.style.display = 'none';
+    }
+}
+
+function validateField(input) {
+    const value = input.value.trim();
+    if (input.hasAttribute('required') && !value) {
+        showValidationState(input, 'Este campo es obligatorio.');
+        return false;
+    }
+    if (input.name === 'precio' && value) {
+        const cleaned = value.replace(/,/g, '');
+        if (isNaN(cleaned) || Number(cleaned) <= 0) {
+            showValidationState(input, 'Ingresa un precio válido.');
+            return false;
+        }
+    }
+    if (input.name === 'ubicacion' && value) {
+        try {
+            new URL(value);
+        } catch (e) {
+            showValidationState(input, 'Ingresa una URL válida.');
+            return false;
+        }
+    }
+    showValidationState(input, '');
+    return true;
+}
+
+function updatePreview() {
+    const title = document.querySelector('[name="titulo"]').value || 'Título de la propiedad';
+    const precio = document.querySelector('.precio-input').value || '';
+    const moneda = document.querySelector('[name="moneda"]').value || '';
+    const departamento = document.querySelector('[name="departamento"]').value || '';
+    const ciudad = document.querySelector('[name="ciudad"]').value || '';
+    const barrio = document.querySelector('[name="barrio"]').value || '';
+    const superficie = document.querySelector('[name="superficie"]').value || '';
+    const dormitorios = document.querySelector('[name="dormitorios"]').value || '';
+    const banos = document.querySelector('[name="banos"]').value || '';
+    const descripcion = document.querySelector('[name="descripcion"]').value || '';
+    const ubicacion = document.querySelector('[name="ubicacion"]').value || '';
+
+    document.getElementById('preview-title').textContent = title;
+    const locationText = [departamento, ciudad, barrio].filter(Boolean).join(' · ');
+    document.getElementById('preview-location').textContent = locationText || 'Ubicación pendiente';
+    document.getElementById('preview-price').textContent = precio ? `${precio} ${moneda}` : '--';
+    document.getElementById('preview-area').textContent = superficie ? `Superficie: ${superficie} m²` : 'Superficie: -- m²';
+    document.getElementById('preview-beds').textContent = dormitorios ? `Dormitorios: ${dormitorios}` : 'Dormitorios: --';
+    document.getElementById('preview-baths').textContent = banos ? `Baños: ${banos}` : 'Baños: --';
+    document.getElementById('preview-desc').textContent = descripcion || 'Descripción breve...';
+
+    const mapLink = document.getElementById('preview-map-link');
+    const embed = tryEmbedMap(ubicacion);
+    if (ubicacion) {
+        mapLink.href = ubicacion;
+        mapLink.classList.remove('preview-link-disabled');
+        mapLink.textContent = 'Abrir en Google Maps';
+    } else {
+        mapLink.href = '#';
+        mapLink.classList.add('preview-link-disabled');
+        mapLink.textContent = 'Agrega el enlace de Maps';
+    }
+    const mapContainer = document.getElementById('preview-map');
+    if (embed) {
+        mapContainer.style.display = 'block';
+        mapContainer.innerHTML = `<iframe src="${embed}" width="100%" height="180" style="border:0; border-radius: 12px;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+    } else {
+        mapContainer.style.display = 'none';
+        mapContainer.innerHTML = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    const depSelect = document.querySelector('.departamento-select');
+    const ciudadInput = document.querySelector('.ciudad-input');
+    const precioInput = document.querySelector('.precio-input');
+    const form = document.querySelector('form');
+
+    if (depSelect) {
+        populateCities(depSelect.value);
+        depSelect.addEventListener('change', function(){ populateCities(this.value, ciudadInput.value.trim()); validateField(this); updatePreview(); });
+    }
+
+    if (precioInput) {
+        precioInput.addEventListener('input', function(){
+            const cursor = this.selectionStart;
+            let val = this.value.replace(/[^0-9\.]/g,'');
+            if (val === '') { this.value = ''; updatePreview(); return; }
+            const parts = val.split('.');
+            parts[0] = parts[0].replace(/^0+(?=\d)/, '');
+            this.value = formatNumberWithCommas(parts.join('.'));
+            this.selectionStart = this.selectionEnd = cursor;
+            validateField(this);
+            updatePreview();
+        });
+        if (form) {
+            form.addEventListener('submit', function(){
+                precioInput.value = precioInput.value.replace(/,/g, '');
+            });
+        }
+    }
+
+    const inputs = ['titulo','tipo','precio','moneda','departamento','ciudad','barrio','superficie','dormitorios','banos','descripcion','ubicacion'];
+    inputs.forEach(name => {
+        const el = document.querySelector(`[name="${name}"]`) || document.querySelector(`.${name}-input`);
+        if (!el) return;
+        el.addEventListener('input', function(){ updatePreview(); if (this.value.trim()) validateField(this); });
+        el.addEventListener('blur', function(){ validateField(this); });
+    });
+
+    if (ciudadInput) {
+        let timer = null;
+        ciudadInput.addEventListener('input', function(){
+            const q = this.value.trim();
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                populateCities(depSelect ? depSelect.value : null, q);
+            }, 250);
+            updatePreview();
+        });
+        ciudadInput.addEventListener('focus', function(){
+            populateCities(depSelect ? depSelect.value : null, this.value.trim());
+        });
+    }
+
+    const photoInput = document.querySelector('[name="foto_principal"]');
+    const previewImg = document.getElementById('preview-image');
+    if (photoInput) {
+        photoInput.addEventListener('change', function(){
+            const file = this.files && this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev){ previewImg.src = ev.target.result; };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', function(event){
+            let valid = true;
+            inputs.forEach(name => {
+                const el = document.querySelector(`[name="${name}"]`) || document.querySelector(`.${name}-input`);
+                if (el && !validateField(el)) valid = false;
+            });
+            if (!valid) {
+                event.preventDefault();
+                event.stopPropagation();
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) firstInvalid.scrollIntoView({behavior:'smooth', block:'center'});
+                return;
+            }
+            // Form is valid: prevent double submit and show spinner
+            const submitBtn = form.querySelector('#submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('disabled-submitting');
+                const spinner = submitBtn.querySelector('.btn-spinner');
+                if (spinner) spinner.style.display = 'inline-block';
+            }
+        });
+    }
+
+    updatePreview();
+});
+</script>
 {% endblock %}

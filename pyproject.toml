@@ -8,3 +8,5 @@ exclude = '''
   | __pycache__
 )/
 '''
+
+#define la configuracion del black
