@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Mensajes recibidos{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Mensajes recibidos</h1>
+
+{% for item in mensajes_contacto %}
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <h5>{{ item.propiedad.titulo }}</h5>
+            <p><strong>Nombre:</strong> {{ item.nombre }}</p>
+            <p><strong>Contacto:</strong> {{ item.contacto }}</p>
+            <p><strong>Mensaje:</strong> {{ item.mensaje }}</p>
+            <p><strong>Fecha:</strong> {{ item.creado }}</p>
+        </div>
+    </div>
+{% empty %}
+    <p>No tenés mensajes todavía.</p>
+{% endfor %}
+{% endblock %}
