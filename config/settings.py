@@ -25,10 +25,11 @@ SECRET_KEY = "django-insecure-!6=^20xznir^xzh$$vd-+ah(z6az&li_lz5srze0uou#ifu536
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+]
 
-
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     "apps.usuarios",
     "apps.propiedades",
     "apps.contactos",
+    "django.contrib.humanize",
 ]
 
 MIDDLEWARE = [
@@ -57,10 +59,13 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [
+            BASE_DIR / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -108,9 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es-py"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Asuncion"
 
 USE_I18N = True
 

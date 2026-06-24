@@ -1,15 +1,28 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
+
 
 class Perfil(models.Model):
-    ROL_CHOICES = (
-        ('comprador', 'Comprador'),
-        ('vendedor', 'Vendedor'),
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="perfil",
     )
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
     telefono = models.CharField(max_length=20)
-    rol = models.CharField(max_length=20, choices=ROL_CHOICES)
+    es_comprador = models.BooleanField(default=True)
+    es_vendedor = models.BooleanField(default=True)
+
+    @property
+    def roles_display(self):
+        roles = []
+
+        if self.es_comprador:
+            roles.append("Comprador")
+
+        if self.es_vendedor:
+            roles.append("Vendedor")
+
+        return " y ".join(roles) or "Sin rol"
 
     def __str__(self):
-        return f"{self.user.username} - {self.rol}"
+        return f"{self.user.username} - {self.roles_display}"
