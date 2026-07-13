@@ -1,601 +1,1707 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block title %}
-    {{ titulo_pagina }}
+    {% if es_edicion %}
+        Editar propiedad
+    {% else %}
+        Publicar propiedad
+    {% endif %}
 {% endblock %}
 
 {% block content %}
 
-<div class="container py-4">
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
+<style>
+    .publish-page {
+        --primary-color: #2563eb;
+        --primary-dark: #1d4ed8;
+        --border-color: #e2e8f0;
+        --text-color: #0f172a;
+        --muted-color: #64748b;
+    }
 
-            <div class="card border-0 shadow-sm rounded-4">
+    .publish-header {
+        padding: 32px;
+        margin-bottom: 24px;
+        color: white;
+        background:
+            radial-gradient(
+                circle at top right,
+                rgba(255, 255, 255, 0.20),
+                transparent 35%
+            ),
+            linear-gradient(
+                135deg,
+                #0f172a,
+                #2563eb
+            );
+        border-radius: 24px;
+        box-shadow:
+            0 20px 45px
+            rgba(15, 23, 42, 0.16);
+    }
 
-                <div class="card-body p-4 p-md-5">
+    .publish-header h1 {
+        font-weight: 800;
+    }
 
-                    <div class="mb-4">
-                        <h1 class="h3 fw-bold mb-2">
-                            {{ titulo_pagina }}
-                        </h1>
+    .publish-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
 
-                        <p class="text-muted mb-0">
-                            Completá los datos para publicar tu propiedad.
-                        </p>
-                    </div>
+    .publish-step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background:
+            rgba(255, 255, 255, 0.12);
+        border:
+            1px solid
+            rgba(255, 255, 255, 0.20);
+        border-radius: 30px;
+        font-size: 14px;
+    }
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                <div>{{ error }}</div>
-                            {% endfor %}
-                        </div>
+    .publish-step-number {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        place-items: center;
+        color: var(--primary-color);
+        background: white;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .form-section {
+        padding: 24px;
+        margin-bottom: 18px;
+        background: white;
+        border:
+            1px solid
+            var(--border-color);
+        border-radius: 20px;
+        box-shadow:
+            0 12px 30px
+            rgba(15, 23, 42, 0.06);
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .form-section:focus-within {
+        transform: translateY(-2px);
+        box-shadow:
+            0 18px 35px
+            rgba(37, 99, 235, 0.10);
+    }
+
+    .section-title-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .section-number {
+        display: grid;
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        color: var(--primary-color);
+        background: #eff6ff;
+        border-radius: 14px;
+        font-weight: 800;
+    }
+
+    .section-title-container h2 {
+        margin: 0;
+        color: var(--text-color);
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .section-title-container p {
+        margin: 4px 0 0;
+        color: var(--muted-color);
+        font-size: 14px;
+    }
+
+    .publish-page .form-label {
+        color: #334155;
+        font-weight: 700;
+    }
+
+    .publish-page .form-control,
+    .publish-page .form-select {
+        min-height: 48px;
+        border-color: #cbd5e1;
+        border-radius: 14px;
+    }
+
+    .publish-page textarea.form-control {
+        min-height: 135px;
+    }
+
+    .publish-page .form-control:focus,
+    .publish-page .form-select:focus {
+        border-color: #60a5fa;
+        box-shadow:
+            0 0 0 4px
+            rgba(37, 99, 235, 0.12);
+    }
+
+    .price-container {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            145px;
+        gap: 10px;
+    }
+
+    #location-map {
+        width: 100%;
+        height: 370px;
+        border:
+            1px solid
+            var(--border-color);
+        border-radius: 18px;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .map-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .location-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted-color);
+        font-size: 14px;
+    }
+
+    .location-dot {
+        width: 11px;
+        height: 11px;
+        background: #f59e0b;
+        border-radius: 50%;
+        box-shadow:
+            0 0 0 4px
+            rgba(245, 158, 11, 0.15);
+    }
+
+    .location-status.selected
+    .location-dot {
+        background: #16a34a;
+        box-shadow:
+            0 0 0 4px
+            rgba(22, 163, 74, 0.14);
+    }
+
+    .preview-card {
+        position: sticky;
+        top: 20px;
+        overflow: hidden;
+        background: white;
+        border:
+            1px solid
+            var(--border-color);
+        border-radius: 22px;
+        box-shadow:
+            0 18px 45px
+            rgba(15, 23, 42, 0.10);
+    }
+
+    .preview-image-container {
+        position: relative;
+        aspect-ratio: 16 / 10;
+        overflow: hidden;
+        background: #e2e8f0;
+    }
+
+    .preview-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-label {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        padding: 8px 12px;
+        color: #1e3a8a;
+        background:
+            rgba(255, 255, 255, 0.92);
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .preview-content {
+        padding: 22px;
+    }
+
+    .preview-price {
+        color: var(--primary-color);
+        font-size: 24px;
+        font-weight: 800;
+    }
+
+    .preview-details {
+        display: grid;
+        grid-template-columns:
+            repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .preview-detail {
+        padding: 12px 8px;
+        color: #475569;
+        background: #f8fafc;
+        border-radius: 13px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .character-counter {
+        margin-top: 5px;
+        color: var(--muted-color);
+        font-size: 12px;
+        text-align: right;
+    }
+
+    .submit-container {
+        position: sticky;
+        bottom: 12px;
+        z-index: 10;
+        display: flex;
+        gap: 12px;
+        padding: 14px;
+        background:
+            rgba(255, 255, 255, 0.94);
+        border:
+            1px solid
+            var(--border-color);
+        border-radius: 16px;
+        box-shadow:
+            0 14px 35px
+            rgba(15, 23, 42, 0.12);
+        backdrop-filter: blur(12px);
+    }
+
+    @media (
+        max-width: 991px
+    ) {
+        .preview-card {
+            position: static;
+            margin-top: 20px;
+        }
+
+        #location-map {
+            height: 320px;
+        }
+    }
+
+    @media (
+        max-width: 575px
+    ) {
+        .publish-header {
+            padding: 22px;
+            border-radius: 18px;
+        }
+
+        .form-section {
+            padding: 18px;
+        }
+
+        .price-container {
+            grid-template-columns: 1fr;
+        }
+
+        .submit-container {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="container py-4 publish-page">
+
+    <div class="publish-header">
+        <div
+            class="
+                d-flex
+                flex-column
+                flex-lg-row
+                justify-content-between
+                gap-3
+            "
+        >
+            <div>
+                <span
+                    class="
+                        small
+                        text-uppercase
+                        fw-bold
+                        opacity-75
+                    "
+                >
+                    Nueva publicación
+                </span>
+
+                <h1 class="mt-2 mb-2">
+                    {% if es_edicion %}
+                        Editá tu propiedad
+                    {% else %}
+                        Publicá tu propiedad
                     {% endif %}
-
-                    {% if form.errors %}
-                        <div class="alert alert-warning">
-                            Revisá los campos marcados antes de guardar
-                            la publicación.
-                        </div>
-                    {% endif %}
-
-                    <form
-                        method="post"
-                        enctype="multipart/form-data"
-                        novalidate
-                    >
-                        {% csrf_token %}
-
-                        <!-- Información principal -->
-                        <div class="mb-4">
-                            <h2 class="h5 fw-bold border-bottom pb-2">
-                                Información principal
-                            </h2>
-                        </div>
-
-                        <div class="row">
-
-                            <div class="col-md-8 mb-3">
-                                <label
-                                    for="{{ form.titulo.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.titulo.label }}
-                                </label>
-
-                                {{ form.titulo }}
-
-                                {% for error in form.titulo.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label
-                                    for="{{ form.tipo.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.tipo.label }}
-                                </label>
-
-                                {{ form.tipo }}
-
-                                {% for error in form.tipo.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                        </div>
-
-                        <div class="row">
-
-                            <div class="col-md-8 mb-3">
-                                <label
-                                    for="{{ form.precio.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.precio.label }}
-                                </label>
-
-                                {{ form.precio }}
-
-                                {% for error in form.precio.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label
-                                    for="{{ form.moneda.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.moneda.label }}
-                                </label>
-
-                                {{ form.moneda }}
-
-                                {% for error in form.moneda.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                        </div>
-
-                        <!-- Ubicación -->
-                        <div class="mt-4 mb-4">
-                            <h2 class="h5 fw-bold border-bottom pb-2">
-                                Ubicación
-                            </h2>
-                        </div>
-
-                        <div class="row">
-
-                            <div class="col-md-6 mb-3">
-                                <label
-                                    for="{{ form.departamento.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.departamento.label }}
-                                </label>
-
-                                {{ form.departamento }}
-
-                                {% for error in form.departamento.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label
-                                    for="{{ form.ciudad.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.ciudad.label }}
-                                </label>
-
-                                {{ form.ciudad }}
-
-                                <datalist id="ciudades-list"></datalist>
-
-                                {% for error in form.ciudad.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                        </div>
-
-                        <div class="row">
-
-                            <div class="col-md-6 mb-3">
-                                <label
-                                    for="{{ form.barrio.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.barrio.label }}
-                                </label>
-
-                                {{ form.barrio }}
-
-                                {% for error in form.barrio.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label
-                                    for="{{ form.direccion.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.direccion.label }}
-                                </label>
-
-                                {{ form.direccion }}
-
-                                {% for error in form.direccion.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                        </div>
-
-                        <div class="mb-3">
-                            <label
-                                for="{{ form.ubicacion.id_for_label }}"
-                                class="form-label fw-semibold"
-                            >
-                                {{ form.ubicacion.label }}
-                            </label>
-
-                            {{ form.ubicacion }}
-
-                            <div class="form-text">
-                                Este campo es opcional. Podés pegar un enlace
-                                compartido desde Google Maps.
-                            </div>
-
-                            {% for error in form.ubicacion.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ error }}
-                                </div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Características -->
-                        <div class="mt-4 mb-4">
-                            <h2 class="h5 fw-bold border-bottom pb-2">
-                                Características
-                            </h2>
-                        </div>
-
-                        <div class="row">
-
-                            <div class="col-md-4 mb-3">
-                                <label
-                                    for="{{ form.superficie.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.superficie.label }}
-                                </label>
-
-                                {{ form.superficie }}
-
-                                {% for error in form.superficie.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label
-                                    for="{{ form.dormitorios.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.dormitorios.label }}
-                                </label>
-
-                                {{ form.dormitorios }}
-
-                                {% for error in form.dormitorios.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label
-                                    for="{{ form.banos.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    {{ form.banos.label }}
-                                </label>
-
-                                {{ form.banos }}
-
-                                {% for error in form.banos.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                        </div>
-
-                        <div class="form-check mb-4">
-                            {{ form.cochera }}
-
-                            <label
-                                for="{{ form.cochera.id_for_label }}"
-                                class="form-check-label"
-                            >
-                                {{ form.cochera.label }}
-                            </label>
-
-                            {% for error in form.cochera.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ error }}
-                                </div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Descripción e imagen -->
-                        <div class="mt-4 mb-4">
-                            <h2 class="h5 fw-bold border-bottom pb-2">
-                                Descripción e imagen
-                            </h2>
-                        </div>
-
-                        <div class="mb-3">
-                            <label
-                                for="{{ form.descripcion.id_for_label }}"
-                                class="form-label fw-semibold"
-                            >
-                                {{ form.descripcion.label }}
-                            </label>
-
-                            {{ form.descripcion }}
-
-                            <div class="form-text">
-                                Escribí por lo menos 30 caracteres.
-                            </div>
-
-                            {% for error in form.descripcion.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ error }}
-                                </div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mb-4">
-                            <label
-                                for="{{ form.foto_principal.id_for_label }}"
-                                class="form-label fw-semibold"
-                            >
-                                {{ form.foto_principal.label }}
-                            </label>
-
-                            {{ form.foto_principal }}
-
-                            <div class="form-text">
-                                Formatos permitidos: JPG, PNG o WEBP.
-                                Tamaño máximo: 5 MB.
-                            </div>
-
-                            {% for error in form.foto_principal.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ error }}
-                                </div>
-                            {% endfor %}
-
-                            {% if es_edicion and propiedad.foto_principal %}
-                                <div class="mt-3">
-                                    <p class="small text-muted mb-2">
-                                        Imagen actual:
-                                    </p>
-
-                                    <img
-                                        src="{{ propiedad.foto_principal.url }}"
-                                        alt="{{ propiedad.titulo }}"
-                                        class="img-fluid rounded-3"
-                                        style="max-height: 250px;"
-                                    >
-                                </div>
-                            {% endif %}
-
-                            <div
-                                id="vista-previa-contenedor"
-                                class="mt-3 d-none"
-                            >
-                                <p class="small text-muted mb-2">
-                                    Vista previa:
-                                </p>
-
-                                <img
-                                    id="vista-previa-imagen"
-                                    src=""
-                                    alt="Vista previa"
-                                    class="img-fluid rounded-3"
-                                    style="max-height: 300px;"
-                                >
-                            </div>
-                        </div>
-
-                        <div class="d-flex flex-column flex-sm-row gap-2">
-
-                            <button
-                                type="submit"
-                                class="btn btn-primary px-4"
-                            >
-                                {% if es_edicion %}
-                                    Guardar cambios
-                                {% else %}
-                                    Publicar propiedad
-                                {% endif %}
-                            </button>
-
-                            <a
-                                href="{% url 'mis_publicaciones' %}"
-                                class="btn btn-outline-secondary px-4"
-                            >
-                                Cancelar
-                            </a>
-
-                        </div>
-
-                    </form>
-
-                </div>
+                </h1>
+
+                <p class="mb-0 opacity-75">
+                    Completá los datos y comprobá
+                    cómo se verá antes de publicarla.
+                </p>
+            </div>
+        </div>
+
+        <div class="publish-steps">
+            <div class="publish-step">
+                <span class="publish-step-number">
+                    1
+                </span>
+                Información
             </div>
 
+            <div class="publish-step">
+                <span class="publish-step-number">
+                    2
+                </span>
+                Ubicación
+            </div>
+
+            <div class="publish-step">
+                <span class="publish-step-number">
+                    3
+                </span>
+                Detalles
+            </div>
+
+            <div class="publish-step">
+                <span class="publish-step-number">
+                    4
+                </span>
+                Fotografía
+            </div>
         </div>
     </div>
 
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger rounded-4">
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if form.errors %}
+        <div class="alert alert-warning rounded-4">
+            Revisá los campos marcados antes
+            de guardar la publicación.
+        </div>
+    {% endif %}
+
+    <form
+        id="property-form"
+        method="post"
+        enctype="multipart/form-data"
+        novalidate
+    >
+        {% csrf_token %}
+
+        {{ form.latitud }}
+        {{ form.longitud }}
+
+        <div class="row g-4">
+
+            <div class="col-lg-7">
+
+                <div class="form-section">
+                    <div class="section-title-container">
+                        <span class="section-number">
+                            1
+                        </span>
+
+                        <div>
+                            <h2>
+                                Información principal
+                            </h2>
+
+                            <p>
+                                Indicá qué ofrecés
+                                y cuál es su precio.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label
+                            for="{{ form.titulo.id_for_label }}"
+                            class="form-label"
+                        >
+                            {{ form.titulo.label }}
+                        </label>
+
+                        {{ form.titulo }}
+
+                        {% for error in form.titulo.errors %}
+                            <div
+                                class="
+                                    invalid-feedback
+                                    d-block
+                                "
+                            >
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-5">
+                            <label
+                                for="{{ form.tipo.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ form.tipo.label }}
+                            </label>
+
+                            {{ form.tipo }}
+
+                            {% for error in form.tipo.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-7">
+                            <label
+                                for="{{ form.precio.id_for_label }}"
+                                class="form-label"
+                            >
+                                Precio
+                            </label>
+
+                            <div class="price-container">
+                                {{ form.precio }}
+                                {{ form.moneda }}
+                            </div>
+
+                            {% for error in form.precio.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                            {% for error in form.moneda.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                            <div class="form-text">
+                                Ejemplo: 350.000.000
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title-container">
+                        <span class="section-number">
+                            2
+                        </span>
+
+                        <div>
+                            <h2>
+                                Departamento y ciudad
+                            </h2>
+
+                            <p>
+                                Al elegir el departamento,
+                                se cargarán sus ciudades.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label
+                                for="{{ form.departamento.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ form.departamento.label }}
+                            </label>
+
+                            {{ form.departamento }}
+
+                            {% for error in form.departamento.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label
+                                for="{{ form.ciudad.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ form.ciudad.label }}
+                            </label>
+
+                            {{ form.ciudad }}
+
+                            {% for error in form.ciudad.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label
+                                for="{{ form.barrio.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ form.barrio.label }}
+                            </label>
+
+                            {{ form.barrio }}
+
+                            {% for error in form.barrio.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label
+                                for="{{ form.direccion.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ form.direccion.label }}
+                            </label>
+
+                            {{ form.direccion }}
+
+                            {% for error in form.direccion.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title-container">
+                        <span class="section-number">
+                            3
+                        </span>
+
+                        <div>
+                            <h2>
+                                Ubicación exacta
+                            </h2>
+
+                            <p>
+                                Hacé clic en el mapa
+                                para colocar el marcador.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="map-toolbar">
+                        <div
+                            id="location-status"
+                            class="location-status"
+                        >
+                            <span class="location-dot"></span>
+
+                            <span id="location-text">
+                                Todavía no seleccionaste
+                                una ubicación.
+                            </span>
+                        </div>
+
+                        <button
+                            id="use-my-location"
+                            type="button"
+                            class="
+                                btn
+                                btn-outline-primary
+                                btn-sm
+                                rounded-pill
+                                px-3
+                            "
+                        >
+                            Usar mi ubicación
+                        </button>
+                    </div>
+
+                    <div id="location-map"></div>
+
+                    {% for error in form.latitud.errors %}
+                        <div
+                            class="
+                                invalid-feedback
+                                d-block
+                                mt-2
+                            "
+                        >
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                    {% for error in form.longitud.errors %}
+                        <div
+                            class="
+                                invalid-feedback
+                                d-block
+                                mt-2
+                            "
+                        >
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                    <div
+                        id="map-error"
+                        class="
+                            text-danger
+                            small
+                            mt-2
+                            d-none
+                        "
+                    >
+                        Seleccioná una ubicación
+                        en el mapa.
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title-container">
+                        <span class="section-number">
+                            4
+                        </span>
+
+                        <div>
+                            <h2>
+                                Características
+                            </h2>
+
+                            <p>
+                                Agregá los detalles
+                                principales de la propiedad.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label
+                                for="{{ form.superficie.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ form.superficie.label }}
+                            </label>
+
+                            {{ form.superficie }}
+
+                            {% for error in form.superficie.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label
+                                for="{{ form.dormitorios.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ form.dormitorios.label }}
+                            </label>
+
+                            {{ form.dormitorios }}
+
+                            {% for error in form.dormitorios.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label
+                                for="{{ form.banos.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ form.banos.label }}
+                            </label>
+
+                            {{ form.banos }}
+
+                            {% for error in form.banos.errors %}
+                                <div
+                                    class="
+                                        invalid-feedback
+                                        d-block
+                                    "
+                                >
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="
+                            form-check
+                            form-switch
+                            mt-4
+                        "
+                    >
+                        {{ form.cochera }}
+
+                        <label
+                            for="{{ form.cochera.id_for_label }}"
+                            class="form-check-label"
+                        >
+                            {{ form.cochera.label }}
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title-container">
+                        <span class="section-number">
+                            5
+                        </span>
+
+                        <div>
+                            <h2>
+                                Descripción y fotografía
+                            </h2>
+
+                            <p>
+                                Explicá los puntos fuertes
+                                y agregá una imagen clara.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label
+                            for="{{ form.descripcion.id_for_label }}"
+                            class="form-label"
+                        >
+                            {{ form.descripcion.label }}
+                        </label>
+
+                        {{ form.descripcion }}
+
+                        <div
+                            id="description-counter"
+                            class="character-counter"
+                        >
+                            0 / 3000
+                        </div>
+
+                        {% for error in form.descripcion.errors %}
+                            <div
+                                class="
+                                    invalid-feedback
+                                    d-block
+                                "
+                            >
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label
+                            for="{{ form.foto_principal.id_for_label }}"
+                            class="form-label"
+                        >
+                            {{ form.foto_principal.label }}
+                        </label>
+
+                        {{ form.foto_principal }}
+
+                        <div class="form-text">
+                            JPG, PNG o WEBP.
+                            Tamaño máximo: 5 MB.
+                        </div>
+
+                        {% for error in form.foto_principal.errors %}
+                            <div
+                                class="
+                                    invalid-feedback
+                                    d-block
+                                "
+                            >
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="submit-container">
+                    <button
+                        id="submit-button"
+                        type="submit"
+                        class="
+                            btn
+                            btn-primary
+                            flex-grow-1
+                            py-2
+                            rounded-3
+                        "
+                    >
+                        <span class="submit-text">
+                            {% if es_edicion %}
+                                Guardar cambios
+                            {% else %}
+                                Publicar propiedad
+                            {% endif %}
+                        </span>
+
+                        <span
+                            class="
+                                spinner-border
+                                spinner-border-sm
+                                ms-2
+                                d-none
+                            "
+                        ></span>
+                    </button>
+
+                    <a
+                        href="{% url 'mis_publicaciones' %}"
+                        class="
+                            btn
+                            btn-outline-secondary
+                            py-2
+                            rounded-3
+                        "
+                    >
+                        Cancelar
+                    </a>
+                </div>
+
+            </div>
+
+            <div class="col-lg-5">
+
+                <div class="preview-card">
+
+                    <div class="preview-image-container">
+                        <img
+                            id="preview-image"
+
+                            {% if es_edicion and propiedad.foto_principal %}
+                                src="{{ propiedad.foto_principal.url }}"
+                            {% else %}
+                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'%3E%3Crect width='100%25' height='100%25' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='28' fill='%2364748b'%3EAgregá una fotografía%3C/text%3E%3C/svg%3E"
+                            {% endif %}
+
+                            alt="Vista previa"
+                        >
+
+                        <span class="preview-label">
+                            Vista previa
+                        </span>
+                    </div>
+
+                    <div class="preview-content">
+
+                        <h3
+                            id="preview-title"
+                            class="h5 fw-bold mb-1"
+                        >
+                            Título de la propiedad
+                        </h3>
+
+                        <p
+                            id="preview-location"
+                            class="
+                                small
+                                text-muted
+                                mb-3
+                            "
+                        >
+                            Departamento · Ciudad
+                        </p>
+
+                        <div
+                            id="preview-price"
+                            class="preview-price"
+                        >
+                            Precio pendiente
+                        </div>
+
+                        <div class="preview-details">
+
+                            <div class="preview-detail">
+                                <strong id="preview-area">
+                                    —
+                                </strong>
+                                <br>
+                                m²
+                            </div>
+
+                            <div class="preview-detail">
+                                <strong id="preview-beds">
+                                    —
+                                </strong>
+                                <br>
+                                dormitorios
+                            </div>
+
+                            <div class="preview-detail">
+                                <strong id="preview-baths">
+                                    —
+                                </strong>
+                                <br>
+                                baños
+                            </div>
+
+                        </div>
+
+                        <p
+                            id="preview-description"
+                            class="
+                                small
+                                text-muted
+                                mt-3
+                                mb-0
+                            "
+                        >
+                            La descripción aparecerá aquí.
+                        </p>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
 </div>
 
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const inputImagen = document.getElementById(
-        "{{ form.foto_principal.id_for_label }}"
-    );
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    const contenedor = document.getElementById(
-        "vista-previa-contenedor"
-    );
-
-    const imagenPrevia = document.getElementById(
-        "vista-previa-imagen"
-    );
-
-    if (inputImagen) {
-        inputImagen.addEventListener("change", function () {
-            const archivo = this.files[0];
-
-            if (!archivo) {
-                contenedor.classList.add("d-none");
-                imagenPrevia.src = "";
-                return;
-            }
-
-            const tiposPermitidos = [
-                "image/jpeg",
-                "image/png",
-                "image/webp"
-            ];
-
-            if (!tiposPermitidos.includes(archivo.type)) {
-                alert("Seleccioná una imagen JPG, PNG o WEBP.");
-                this.value = "";
-                contenedor.classList.add("d-none");
-                return;
-            }
-
-            const limite = 5 * 1024 * 1024;
-
-            if (archivo.size > limite) {
-                alert("La imagen no puede superar los 5 MB.");
-                this.value = "";
-                contenedor.classList.add("d-none");
-                return;
-            }
-
-            imagenPrevia.src = URL.createObjectURL(archivo);
-            contenedor.classList.remove("d-none");
-        });
-    }
-
-    const tipoPropiedad = document.getElementById(
-        "{{ form.tipo.id_for_label }}"
-    );
-
-    const dormitorios = document.getElementById(
-        "{{ form.dormitorios.id_for_label }}"
-    );
-
-    const banos = document.getElementById(
-        "{{ form.banos.id_for_label }}"
-    );
-
-    const cochera = document.getElementById(
-        "{{ form.cochera.id_for_label }}"
-    );
-
-    function controlarCamposTerreno() {
-        if (!tipoPropiedad) {
-            return;
-        }
-
-        const esTerreno = tipoPropiedad.value === "terreno";
-
-        if (dormitorios) {
-            dormitorios.disabled = esTerreno;
-
-            if (esTerreno) {
-                dormitorios.value = 0;
-            }
-        }
-
-        if (banos) {
-            banos.disabled = esTerreno;
-
-            if (esTerreno) {
-                banos.value = 0;
-            }
-        }
-
-        if (cochera) {
-            cochera.disabled = esTerreno;
-
-            if (esTerreno) {
-                cochera.checked = false;
-            }
-        }
-    }
-
-    if (tipoPropiedad) {
-        tipoPropiedad.addEventListener(
-            "change",
-            controlarCamposTerreno
+        const form = document.getElementById(
+            "property-form"
         );
 
-        controlarCamposTerreno();
-    }
+        const priceInput = document.getElementById(
+            "{{ form.precio.id_for_label }}"
+        );
 
-    const departamento = document.getElementById(
-        "{{ form.departamento.id_for_label }}"
-    );
+        const currencyInput = document.getElementById(
+            "{{ form.moneda.id_for_label }}"
+        );
 
-    const listaCiudades = document.getElementById(
-        "ciudades-list"
-    );
+        const departmentInput = document.getElementById(
+            "{{ form.departamento.id_for_label }}"
+        );
 
-    async function cargarCiudades() {
-        if (!departamento || !listaCiudades) {
-            return;
-        }
+        const cityInput = document.getElementById(
+            "{{ form.ciudad.id_for_label }}"
+        );
 
-        const valor = departamento.value;
+        const latitudeInput = document.getElementById(
+            "{{ form.latitud.id_for_label }}"
+        );
 
-        listaCiudades.innerHTML = "";
+        const longitudeInput = document.getElementById(
+            "{{ form.longitud.id_for_label }}"
+        );
 
-        if (!valor) {
-            return;
-        }
+        const descriptionInput = document.getElementById(
+            "{{ form.descripcion.id_for_label }}"
+        );
 
-        try {
-            const url =
-                "{% url 'api_ciudades' %}" +
-                "?departamento=" +
-                encodeURIComponent(valor);
+        const photoInput = document.getElementById(
+            "{{ form.foto_principal.id_for_label }}"
+        );
 
-            const respuesta = await fetch(url);
+        const submitButton = document.getElementById(
+            "submit-button"
+        );
 
-            if (!respuesta.ok) {
-                return;
-            }
+        const numberFormatter =
+            new Intl.NumberFormat(
+                "es-PY",
+                {
+                    maximumFractionDigits: 0
+                }
+            );
 
-            const datos = await respuesta.json();
-
-            datos.ciudades.forEach(function (ciudad) {
-                const opcion = document.createElement("option");
-                opcion.value = ciudad;
-                listaCiudades.appendChild(opcion);
-            });
-
-        } catch (error) {
-            console.error(
-                "No se pudieron cargar las ciudades:",
-                error
+        function onlyDigits(value) {
+            return String(
+                value || ""
+            ).replace(
+                /\D/g,
+                ""
             );
         }
-    }
 
-    if (departamento) {
-        departamento.addEventListener(
-            "change",
-            cargarCiudades
+        function fieldValue(name) {
+            const field = document.querySelector(
+                `[name="${name}"]`
+            );
+
+            return field
+                ? field.value.trim()
+                : "";
+        }
+
+        function updatePreview() {
+            const title =
+                fieldValue("titulo")
+                || "Título de la propiedad";
+
+            const price = priceInput.value;
+
+            const currency =
+                currencyInput.value;
+
+            const department =
+                departmentInput.value;
+
+            const city =
+                cityInput.value;
+
+            const neighborhood =
+                fieldValue("barrio");
+
+            const area =
+                fieldValue("superficie");
+
+            const bedrooms =
+                fieldValue("dormitorios");
+
+            const bathrooms =
+                fieldValue("banos");
+
+            const description =
+                fieldValue("descripcion");
+
+            document.getElementById(
+                "preview-title"
+            ).textContent = title;
+
+            document.getElementById(
+                "preview-price"
+            ).textContent = price
+                ? `${currency} ${price}`
+                : "Precio pendiente";
+
+            document.getElementById(
+                "preview-location"
+            ).textContent = [
+                department,
+                city,
+                neighborhood
+            ]
+            .filter(Boolean)
+            .join(" · ")
+            || "Departamento · Ciudad";
+
+            document.getElementById(
+                "preview-area"
+            ).textContent =
+                area || "—";
+
+            document.getElementById(
+                "preview-beds"
+            ).textContent =
+                bedrooms || "—";
+
+            document.getElementById(
+                "preview-baths"
+            ).textContent =
+                bathrooms || "—";
+
+            document.getElementById(
+                "preview-description"
+            ).textContent =
+                description
+                || "La descripción aparecerá aquí.";
+        }
+
+        function formatPrice() {
+            const digits = onlyDigits(
+                priceInput.value
+            );
+
+            priceInput.value = digits
+                ? numberFormatter.format(
+                    Number(digits)
+                )
+                : "";
+
+            updatePreview();
+        }
+
+        priceInput.addEventListener(
+            "input",
+            formatPrice
         );
 
-        cargarCiudades();
+        formatPrice();
+
+        async function loadCities(
+            keepCurrent
+        ) {
+            const department =
+                departmentInput.value;
+
+            const previousCity =
+                keepCurrent
+                ? cityInput.value
+                : "";
+
+            cityInput.disabled = true;
+
+            cityInput.innerHTML =
+                '<option value="">' +
+                'Cargando ciudades...' +
+                '</option>';
+
+            if (!department) {
+                cityInput.innerHTML =
+                    '<option value="">' +
+                    'Primero elegí un departamento' +
+                    '</option>';
+
+                return;
+            }
+
+            try {
+                const url =
+                    "{% url 'api_ciudades' %}" +
+                    "?departamento=" +
+                    encodeURIComponent(
+                        department
+                    );
+
+                const response =
+                    await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(
+                        "No se pudieron cargar las ciudades."
+                    );
+                }
+
+                const data =
+                    await response.json();
+
+                cityInput.innerHTML =
+                    '<option value="">' +
+                    'Seleccioná una ciudad' +
+                    '</option>';
+
+                data.ciudades.forEach(
+                    function (city) {
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+                        option.value = city;
+                        option.textContent = city;
+
+                        if (
+                            city === previousCity
+                        ) {
+                            option.selected = true;
+                        }
+
+                        cityInput.appendChild(
+                            option
+                        );
+                    }
+                );
+
+                cityInput.disabled = false;
+
+            } catch (error) {
+                cityInput.innerHTML =
+                    '<option value="">' +
+                    'Error al cargar ciudades' +
+                    '</option>';
+
+                console.error(error);
+            }
+
+            updatePreview();
+        }
+
+        departmentInput.addEventListener(
+            "change",
+            function () {
+                loadCities(false);
+            }
+        );
+
+        if (departmentInput.value) {
+            loadCities(true);
+        } else {
+            cityInput.disabled = true;
+        }
+
+        const defaultCenter = [
+            -23.4425,
+            -58.4438
+        ];
+
+        const currentLatitude =
+            parseFloat(
+                latitudeInput.value
+            );
+
+        const currentLongitude =
+            parseFloat(
+                longitudeInput.value
+            );
+
+        const hasInitialLocation =
+            Number.isFinite(
+                currentLatitude
+            )
+            &&
+            Number.isFinite(
+                currentLongitude
+            );
+
+        const map = L.map(
+            "location-map"
+        ).setView(
+            hasInitialLocation
+                ? [
+                    currentLatitude,
+                    currentLongitude
+                ]
+                : defaultCenter,
+            hasInitialLocation
+                ? 16
+                : 6
+        );
+
+        L.tileLayer(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+
+                attribution:
+                    "&copy; OpenStreetMap"
+            }
+        ).addTo(map);
+
+        let marker = null;
+
+        const locationStatus =
+            document.getElementById(
+                "location-status"
+            );
+
+        const locationText =
+            document.getElementById(
+                "location-text"
+            );
+
+        const mapError =
+            document.getElementById(
+                "map-error"
+            );
+
+        function selectLocation(
+            latitude,
+            longitude,
+            moveMap
+        ) {
+            const lat =
+                Number(latitude).toFixed(6);
+
+            const lng =
+                Number(longitude).toFixed(6);
+
+            latitudeInput.value = lat;
+            longitudeInput.value = lng;
+
+            if (!marker) {
+                marker = L.marker(
+                    [
+                        lat,
+                        lng
+                    ],
+                    {
+                        draggable: true
+                    }
+                ).addTo(map);
+
+                marker.on(
+                    "dragend",
+                    function () {
+                        const position =
+                            marker.getLatLng();
+
+                        selectLocation(
+                            position.lat,
+                            position.lng,
+                            false
+                        );
+                    }
+                );
+
+            } else {
+                marker.setLatLng(
+                    [
+                        lat,
+                        lng
+                    ]
+                );
+            }
+
+            if (moveMap !== false) {
+                map.setView(
+                    [
+                        lat,
+                        lng
+                    ],
+                    17
+                );
+            }
+
+            locationStatus.classList.add(
+                "selected"
+            );
+
+            locationText.textContent =
+                "Ubicación seleccionada: " +
+                lat +
+                ", " +
+                lng;
+
+            mapError.classList.add(
+                "d-none"
+            );
+        }
+
+        if (hasInitialLocation) {
+            selectLocation(
+                currentLatitude,
+                currentLongitude,
+                false
+            );
+        }
+
+        map.on(
+            "click",
+            function (event) {
+                selectLocation(
+                    event.latlng.lat,
+                    event.latlng.lng,
+                    true
+                );
+            }
+        );
+
+        document.getElementById(
+            "use-my-location"
+        ).addEventListener(
+            "click",
+            function () {
+
+                if (
+                    !navigator.geolocation
+                ) {
+                    alert(
+                        "Tu navegador no permite " +
+                        "obtener la ubicación."
+                    );
+
+                    return;
+                }
+
+                locationText.textContent =
+                    "Buscando tu ubicación...";
+
+                navigator.geolocation
+                    .getCurrentPosition(
+                        function (position) {
+                            selectLocation(
+                                position.coords.latitude,
+                                position.coords.longitude,
+                                true
+                            );
+                        },
+
+                        function () {
+                            locationText.textContent =
+                                "No se pudo obtener " +
+                                "la ubicación. " +
+                                "Podés marcarla manualmente.";
+                        },
+
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000
+                        }
+                    );
+            }
+        );
+
+        [
+            "titulo",
+            "moneda",
+            "departamento",
+            "ciudad",
+            "barrio",
+            "superficie",
+            "dormitorios",
+            "banos",
+            "descripcion"
+        ].forEach(
+            function (name) {
+                const field =
+                    document.querySelector(
+                        `[name="${name}"]`
+                    );
+
+                if (field) {
+                    field.addEventListener(
+                        "input",
+                        updatePreview
+                    );
+
+                    field.addEventListener(
+                        "change",
+                        updatePreview
+                    );
+                }
+            }
+        );
+
+        descriptionInput.addEventListener(
+            "input",
+            function () {
+                document.getElementById(
+                    "description-counter"
+                ).textContent =
+                    descriptionInput.value.length
+                    + " / 3000";
+            }
+        );
+
+        descriptionInput.dispatchEvent(
+            new Event("input")
+        );
+
+        photoInput.addEventListener(
+            "change",
+            function () {
+                const file =
+                    photoInput.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                const allowedTypes = [
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp"
+                ];
+
+                if (
+                    !allowedTypes.includes(
+                        file.type
+                    )
+                ) {
+                    alert(
+                        "La imagen debe ser " +
+                        "JPG, PNG o WEBP."
+                    );
+
+                    photoInput.value = "";
+
+                    return;
+                }
+
+                if (
+                    file.size
+                    > 5 * 1024 * 1024
+                ) {
+                    alert(
+                        "La imagen no puede " +
+                        "superar los 5 MB."
+                    );
+
+                    photoInput.value = "";
+
+                    return;
+                }
+
+                document.getElementById(
+                    "preview-image"
+                ).src =
+                    URL.createObjectURL(
+                        file
+                    );
+            }
+        );
+
+        form.addEventListener(
+            "submit",
+            function (event) {
+
+                if (
+                    !latitudeInput.value
+                    ||
+                    !longitudeInput.value
+                ) {
+                    event.preventDefault();
+
+                    mapError.classList.remove(
+                        "d-none"
+                    );
+
+                    document.getElementById(
+                        "location-map"
+                    ).scrollIntoView(
+                        {
+                            behavior: "smooth",
+                            block: "center"
+                        }
+                    );
+
+                    return;
+                }
+
+                priceInput.value =
+                    onlyDigits(
+                        priceInput.value
+                    );
+
+                submitButton.disabled = true;
+
+                submitButton.querySelector(
+                    ".submit-text"
+                ).textContent =
+                    "Guardando...";
+
+                submitButton.querySelector(
+                    ".spinner-border"
+                ).classList.remove(
+                    "d-none"
+                );
+            }
+        );
+
+        updatePreview();
+
+        setTimeout(
+            function () {
+                map.invalidateSize();
+            },
+            250
+        );
     }
-});
+);
 </script>
 
 {% endblock %}

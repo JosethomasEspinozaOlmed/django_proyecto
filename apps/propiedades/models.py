@@ -130,6 +130,20 @@ class Propiedad(models.Model):
         null=True,
     )
 
+    latitud = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+    )
+
+    longitud = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         ordering = ["-creado"]
 

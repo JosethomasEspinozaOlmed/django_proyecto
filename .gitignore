@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Variables privadas
+.env
+
+# Base de datos local
+db.sqlite3
+
+# Imágenes cargadas durante pruebas
+media/

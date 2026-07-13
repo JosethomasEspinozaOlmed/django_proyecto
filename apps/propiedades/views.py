@@ -147,15 +147,20 @@ def detalle_propiedad(request, pk):
 
 @login_required
 def crear_propiedad(request):
-    perfil = obtener_perfil(request.user)
+    perfil = obtener_perfil(
+        request.user
+    )
 
     if not perfil.es_vendedor:
         messages.error(
             request,
-            "Tu cuenta no tiene habilitado " "el rol de vendedor.",
+            "Tu cuenta no tiene habilitado "
+            "el rol de vendedor.",
         )
 
-        return redirect("inicio")
+        return redirect(
+            "inicio"
+        )
 
     if request.method == "POST":
         formulario = PropiedadForm(
@@ -164,22 +169,37 @@ def crear_propiedad(request):
         )
 
         if formulario.is_valid():
-            propiedad = formulario.save(commit=False)
+            propiedad = formulario.save(
+                commit=False
+            )
 
-            propiedad.vendedor = request.user
+            propiedad.vendedor = (
+                request.user
+            )
+
             propiedad.estado = "activa"
+
+            propiedad.ubicacion = (
+                "https://www.google.com/maps?q="
+                f"{propiedad.latitud},"
+                f"{propiedad.longitud}"
+            )
+
             propiedad.save()
 
             messages.success(
                 request,
-                "La propiedad fue publicada " "correctamente.",
+                "La propiedad fue publicada correctamente.",
             )
 
-            return redirect("mis_publicaciones")
+            return redirect(
+                "mis_publicaciones"
+            )
 
         messages.error(
             request,
-            "Revisá los campos marcados " "antes de publicar.",
+            "Revisá los campos marcados "
+            "antes de publicar.",
         )
 
     else:
@@ -190,7 +210,9 @@ def crear_propiedad(request):
         "propiedades/formulario.html",
         {
             "form": formulario,
-            "titulo_pagina": ("Publicar propiedad"),
+            "titulo_pagina": (
+                "Publicar propiedad"
+            ),
             "es_edicion": False,
         },
     )
@@ -220,6 +242,7 @@ def mis_publicaciones(request):
 
 
 @login_required
+@login_required
 def editar_propiedad(request, pk):
     propiedad = get_object_or_404(
         Propiedad,
@@ -235,22 +258,37 @@ def editar_propiedad(request, pk):
         )
 
         if formulario.is_valid():
-            formulario.save()
+            propiedad = formulario.save(
+                commit=False
+            )
+
+            propiedad.ubicacion = (
+                "https://www.google.com/maps?q="
+                f"{propiedad.latitud},"
+                f"{propiedad.longitud}"
+            )
+
+            propiedad.save()
 
             messages.success(
                 request,
                 "Los cambios fueron guardados.",
             )
 
-            return redirect("mis_publicaciones")
+            return redirect(
+                "mis_publicaciones"
+            )
 
         messages.error(
             request,
-            "Revisá los campos marcados " "antes de guardar.",
+            "Revisá los campos marcados "
+            "antes de guardar.",
         )
 
     else:
-        formulario = PropiedadForm(instance=propiedad)
+        formulario = PropiedadForm(
+            instance=propiedad
+        )
 
     return render(
         request,
@@ -258,7 +296,9 @@ def editar_propiedad(request, pk):
         {
             "form": formulario,
             "propiedad": propiedad,
-            "titulo_pagina": ("Editar propiedad"),
+            "titulo_pagina": (
+                "Editar propiedad"
+            ),
             "es_edicion": True,
         },
     )
@@ -326,29 +366,14 @@ def api_ciudades(request):
         "",
     )
 
-    busqueda = (
-        request.GET.get(
-            "q",
-            "",
+    ciudades = (
+        get_ciudades_for_departamento(
+            departamento
         )
-        .strip()
-        .lower()
     )
-
-    if departamento:
-        ciudades = get_ciudades_for_departamento(departamento)
-    else:
-        ciudades = [
-            ciudad for lista in (DEPARTAMENTOS_CIUDADES.values()) for ciudad in lista
-        ]
-
-    if busqueda:
-        ciudades = [ciudad for ciudad in ciudades if busqueda in ciudad.lower()]
-
-    ciudades_unicas = list(dict.fromkeys(ciudades))[:50]
 
     return JsonResponse(
         {
-            "ciudades": ciudades_unicas,
+            "ciudades": ciudades,
         }
     )
